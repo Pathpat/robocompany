@@ -1,40 +1,44 @@
 import React from "react";
-import CardList from '../components/cardList'
-//import {robots} from './robots.js';
-import SearchBox from '../components/SearchBox.js'
-import './App.css'
-import Scroll from '../components/Scroll.js'
+import { connect } from "react-redux";
+import CardList from '../components/cardList';
+import SearchBox from '../components/SearchBox.js';
+import './App.css';
+import Scroll from '../components/Scroll.js';
+import { requestRobots, setSearchField  } from "../actions";
+
+const mapStateToProps = state => {
+    return {
+        searchField: state.searchRobots.searchField,  
+        robots: state.requestRobots.robots,
+        isPending: state.requestRobots.isPending,
+        error: state.requestRobots.error   
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+   return {
+    onSearchChange: (event) => dispatch(setSearchField(event.target.value)),
+    onRequestRobots: () => dispatch(requestRobots())
+}
+}
 
 class App extends React.Component  {
-    constructor(){
-        super() 
-        this.state = {
-            robots: [],
-            searchfield:''
-        }
-}
-     componentDidMount(){
-        fetch('https://jsonplaceholder.typicode.com/users').then(response =>{
-            return response.json();
-        }).then(users =>{
-            this.setState({ robots: users });
-        })
+        componentDidMount(){
+        this.props.onRequestRobots();
         
     }
-    onSearchChange = (event)=> {
-      this.setState({searchfield: event.target.value})//sygkrinei to ti plhktrologoyme me ton pinaka
-      }
+
     render() {
-        const {robots,searchfield} = this.state;
+        const {searchField , onSearchChange , robots , isPending} = this.props;
         const filteredRobots = robots.filter(robot => {//filtrarei ton pinaka robots
-            return robot.name.toLowerCase().includes(searchfield.toLowerCase())
+            return robot.name.toLowerCase().includes(searchField.toLowerCase())
            })
-           return !robots.length ?//ean ta robot=0 tote loading.. allios emfanise ta robot
+           return isPending ?//ean ta robot=0 tote loading.. allios emfanise ta robot
              <h1 className="tc">Loading...</h1>:
           (
         <div className="tc">
         <h1 className="f1">RoboFriends</h1>
-        <SearchBox searchChange={this.onSearchChange}/>
+        <SearchBox searchChange={onSearchChange}/>
         <Scroll>
         <CardList robots={filteredRobots} />
         </Scroll>
@@ -42,4 +46,4 @@ class App extends React.Component  {
         )};
     }
 
-export default App;
+export default connect(mapStateToProps , mapDispatchToProps)(App);
